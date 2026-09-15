@@ -43,13 +43,13 @@ class McpTransport(BaseTransport):
         self._ready = asyncio.Event()
         self._ended = False
 
-    async def chat(self, line: str, notify: Notify) -> str:
+    async def chat(self, line: str, notify: Notify | None = None) -> str:
         """Runs one turn and gives its reply. Empty line reads turn in flight."""
         await self._ready.wait()
         if self._ended:
             raise SessionEndedError
         if line:
-            await self._start_turn(line, notify)
+            await self._start_turn(line)
         turn = self._turn
         if turn is None:
             return ""
@@ -74,10 +74,6 @@ class McpTransport(BaseTransport):
         if not self._output:
             self._output = McpOutputTransport(self, self._params)
         return self._output
-
-    @property
-    def ended(self) -> bool:
-        return self._ended
 
     def open(self) -> None:
         """Opens this transport to chat calls. Input transport calls it on start."""
@@ -111,12 +107,12 @@ class McpTransport(BaseTransport):
             return
         await self._turn.add(text, spaced=spaced)
 
-    async def _start_turn(self, line: str, notify: Notify) -> None:
+    async def _start_turn(self, line: str) -> None:
         if self._turn and not self._turn.done.is_set():
             await self.input().interrupt()
             # no turn is replaced in flight, so no waiter of one waits on this line
             self.end_turn()
-        self._turn = Turn(notify)
+        self._turn = Turn()
         await self.input().say(line)
         if self._ended:
             self.end_turn()

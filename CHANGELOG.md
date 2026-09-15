@@ -10,14 +10,19 @@
   drains the pipeline before the new line.
 - The reply is each text frame with `skip_tts` set, so a pipeline with an `LLMTextProcessor` in
   front of the tts gives its sentences, joined with their spaces.
-- The turn counts the function call rounds and ends on the `LLMFullResponseEndFrame` of the
-  response that starts no round. An interruption ends the turn in flight.
+- The turn counts one round per `FunctionCallsStartedFrame` and ends on the
+  `LLMFullResponseEndFrame` of the response that starts no round. An interruption ends the turn
+  in flight.
 - A turn that one call read is gone. A later call with an empty line gives an empty block, and a
   cancelled call keeps its turn to read.
+- `McpTransport.chat` takes an optional notifier and sets it once, before the wait.
 - `McpBotServer` with the `start` and `chat` tools on streamable HTTP, the session table, one
   lock per handle and the sweep. The sweep owns the lifetime of a session.
-- The server binds localhost, validates the `Origin` header, takes `origins` for another bind,
-  warns on a bind that is not local, and caps the open sessions at 32.
+- The server drops the handle of a bot that stops, which frees its slot. A dropped handle gives
+  one tool error that names the lifetime and the call `start`.
+- The server binds localhost and checks the `Host` and `Origin` headers on each bind. It takes a
+  `TransportSecuritySettings` of the MCP SDK as `transport_security`, and the loopback setting of
+  the SDK with none. It caps the open sessions at 32.
 - `McpRunnerArguments` on `RunnerArguments`, with `pipeline_idle_timeout_secs=None`, so a bot
   takes one branch and no idle frame set.
 - One progress notification per reply piece. A client cancel ends the handler and keeps the

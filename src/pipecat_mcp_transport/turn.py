@@ -13,9 +13,9 @@ Notify = Callable[[int, str], Awaitable[None]]
 class Turn:
     """One user line and reply of bot to it. It ends at zero rounds."""
 
-    def __init__(self, notify: Notify | None = None) -> None:
+    def __init__(self) -> None:
         self.done = asyncio.Event()
-        self.notify = notify
+        self.notify: Notify | None = None
         self._pieces: list[TextPartForConcatenation] = []
         self._rounds = 0
 

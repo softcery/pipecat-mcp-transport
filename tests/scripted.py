@@ -1,4 +1,4 @@
-"""One scripted bot on the MCP transport, and 2 ways one test runs it."""
+"""One scripted bot on the MCP transport, and 3 ways one test runs it."""
 
 import asyncio
 import socket
@@ -29,6 +29,7 @@ from pipecat_mcp_transport import McpBotServer, McpRunnerArguments, McpTransport
 PROMPT = "you answer questions"
 REPLY = "we open at nine"
 HOST = "127.0.0.1"
+PATH = "/mcp"
 READY_SECONDS = 5.0
 BACKLOG = 16
 TURN_SECONDS = 10.0
@@ -150,16 +151,22 @@ async def running(
 
 
 @asynccontextmanager
-async def serving(build: Build) -> AsyncIterator[tuple[Client, McpBotServer]]:
-    """Serves one bot over streamable HTTP. Gives one stock client and that server."""
-    # port listens before uvicorn takes it, so no client waits for a start
+async def serving(build: Build) -> AsyncIterator[Client]:
+    """Serves one bot over streamable HTTP. Gives one stock client of it."""
+    async with hosting(build) as url, Client(url) as client:
+        yield client
+
+
+@asynccontextmanager
+async def hosting(build: Build) -> AsyncIterator[str]:
+    """Serves one bot over streamable HTTP on this host, whatever its bind. Gives its url."""
+    # port listens before uvicorn takes it, so no caller waits for a start
     with listening() as held:
-        built = build(held.getsockname()[1])
-        served = uvicorn.Server(uvicorn.Config(built.app()))
+        port = held.getsockname()[1]
+        served = uvicorn.Server(uvicorn.Config(build(port).app()))
         run = asyncio.create_task(served.serve(sockets=[held]))
         try:
-            async with Client(built.url) as client:
-                yield client, built
+            yield f"http://{HOST}:{port}{PATH}"
         finally:
             served.should_exit = True
             await asyncio.wait_for(run, timeout=READY_SECONDS)

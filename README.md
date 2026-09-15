@@ -68,9 +68,14 @@ flight. A turn that one call read is gone, so the next empty `line` gives an emp
 The reply is each text frame with `skip_tts` set that reaches the output transport. That is the
 `LLMTextFrame` pieces of the model, or the `AggregatedTextFrame` sentences of an
 `LLMTextProcessor` in front of the tts. The output joins them as the pipecat aggregators do,
-and answers the call on `LLMFullResponseEndFrame`. A response that starts a round of function calls carries
-no reply of its own. The turn counts each `FunctionCallsStartedFrame` and ends on the response
-that starts no round, so a turn of 1 round and a turn of 3 rounds both give the whole reply.
+and answers the call on `LLMFullResponseEndFrame`.
+
+A response that starts a round of function calls carries no reply of its own. The turn counts
+each `FunctionCallsStartedFrame` and ends on the response that starts no round, so a turn of 1
+round and a turn of 2 rounds both give the whole reply. That frame is a system frame, so it
+reaches the output before the end frame of its response. `FunctionCallInProgressFrame` comes
+from the task of each call and reaches the output after that end frame, so the turn reads no
+round from it.
 
 The input transport pushes `LLMConfigureOutputFrame(skip_tts=True)` once, when the pipeline
 starts. The llm service keeps that setting, so every turn of the session pays 0 tts requests and
@@ -94,21 +99,41 @@ session stays and the turn runs on. A later `chat` call with an empty line gives
 ## Session lifetime
 
 The sweep of the server owns the lifetime. It drops a handle that takes no chat call for 300
-seconds, ends its transport and cancels its bot task. A call on a dropped handle gives a tool
-error that names the field and the lifetime. `McpBotServer(bot, handle_seconds=600)` moves that
-number.
+seconds, ends its transport and cancels its bot task. `McpBotServer(bot, handle_seconds=600)`
+moves that number.
+
+When a bot returns or raises, the server drops its handle, so its slot is free for the next
+`start` call. A call on a dropped handle gives one tool error for both causes. It names the
+field, the lifetime and the next call, `start`.
 
 The server gives the bot `pipeline_idle_timeout_secs=None`, so the idle timeout of the worker
 runs on no session of this transport and your bot needs no idle frame set.
 
 ## Security
 
-The server binds `127.0.0.1` and validates the `Origin` header. A request with a foreign origin
-gets 403 and a request with a foreign host gets 421. `McpBotServer(bot, host="0.0.0.0")` drops
-that protection and logs a warning, and the handle is then a bearer secret on an open port.
-`McpBotServer(bot, host="0.0.0.0", origins=["https://app.example.com"])` takes the check back,
-with the host header bound to the host and port of the server. Put an authenticating proxy in
-front of an open bind.
+The server binds `127.0.0.1` by default. On any bind, it checks the `Host` and `Origin` headers
+of each request. A request with a foreign host gets 421, and a request with a foreign origin gets
+403.
+
+With no `transport_security`, the server takes the loopback setting of the MCP SDK: the hosts
+`127.0.0.1`, `localhost` and `[::1]` on any port, and their `http` origins. A server on
+`host="0.0.0.0"` keeps that setting, so a caller that dials another name gets 421.
+
+If a caller dials another name, pass a `TransportSecuritySettings` of the MCP SDK that names it:
+
+```python
+from mcp.server.transport_security import TransportSecuritySettings
+
+security = TransportSecuritySettings(
+    allowed_hosts=["bot.example.com"],
+    allowed_origins=["https://app.example.com"],
+)
+McpBotServer(bot, host="0.0.0.0", transport_security=security).run()
+```
+
+A host entry that ends in `:*` takes any port. `enable_dns_rebinding_protection=False` turns
+both checks off. The handle is a bearer secret, so put an authenticating proxy in front of an
+open bind.
 
 `McpBotServer(bot, sessions=64)` moves the cap on open sessions. The default is 32, and a
 `start` call over the cap gives a tool error that names it.
@@ -139,6 +164,10 @@ The first run of a shape waits for its pipeline to start, which the max of the 1
 - A chat call carries no audio block and no image block. The bot pays stt on nothing.
 - A function handler that does not run the model again leaves the call waiting. The caller
   cancels, and the next call with an empty line gives the reply so far.
+- A response that calls only the cancel tool of an async tool starts no round, because pipecat
+  sends no `FunctionCallsStartedFrame` for that tool. The turn ends on that response, and the
+  reply after the cancel reaches no caller.
+- A new line replaces a done turn that no call read. The reply of that turn reaches no caller.
 - The collector awaits each progress notification, so a slow caller slows its own session.
 - A session lives in one process. A second replica needs sticky routing on the handle.
 - Claude Code caps a tool result at 25 000 tokens and ends a call after 5 minutes with no

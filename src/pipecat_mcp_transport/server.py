@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Callable, Coroutine, Sequence
+from collections.abc import AsyncIterator, Callable, Coroutine
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from time import monotonic
@@ -29,7 +29,6 @@ HANDLE_SECONDS = 300.0
 SWEEP_SECONDS = 30.0
 HANDLE_LENGTH = 36
 SESSIONS = 32
-LOCAL_HOSTS = ("127.0.0.1", "localhost", "::1")
 
 START_DESCRIPTION = """Open a conversation with the bot and return its handle.
 
@@ -58,7 +57,7 @@ class McpBotServer:
         port: int = 7870,
         path: str = "/mcp",
         params: Params = TransportParams,
-        origins: Sequence[str] = (),
+        transport_security: TransportSecuritySettings | None = None,
         sessions: int = SESSIONS,
         handle_seconds: float = HANDLE_SECONDS,
         sweep_seconds: float = SWEEP_SECONDS,
@@ -68,7 +67,7 @@ class McpBotServer:
         self._port = port
         self._path = path
         self._params = params
-        self._origins = list(origins)
+        self._security = _loopback() if transport_security is None else transport_security
         self._cap = sessions
         self._handle_seconds = handle_seconds
         self._sweep_seconds = sweep_seconds
@@ -122,7 +121,7 @@ class McpBotServer:
         # sweep owns lifetime of one session, so worker takes no idle timeout
         arguments.pipeline_idle_timeout_secs = None
         task = asyncio.create_task(self._bot(arguments))
-        task.add_done_callback(lambda done: self._stopped(done, transport))
+        task.add_done_callback(lambda done: self._stopped(handle, done))
         self._sessions[handle] = Session(transport=transport, task=task)
         logger.debug(f"MCP transport: one session opened, {len(self._sessions)} open")
         return handle
@@ -141,10 +140,9 @@ class McpBotServer:
             return reply
 
     def _session(self, handle: str) -> Session:
-        """Gives live session of one handle, or raises tool error."""
+        """Gives session of one handle, or raises tool error."""
         session = self._sessions.get(handle)
-        if session is None or session.transport.ended:
-            self._drop(handle)
+        if session is None:
             raise ToolError(self._gone(handle))
         return session
 
@@ -156,8 +154,8 @@ class McpBotServer:
                 f"{HANDLE_LENGTH} characters; received {len(handle)}."
             )
         return (
-            f"handle: no live session. A session with no chat call for "
-            f"{self._handle_seconds:.0f} seconds ends. Call start again."
+            f"handle: no live session. A session ends after {self._handle_seconds:.0f} seconds "
+            f"with no chat call, or when its bot stops. Call start for a new handle."
         )
 
     def _full(self) -> str:
@@ -167,9 +165,9 @@ class McpBotServer:
             f"A session with no chat call for {self._handle_seconds:.0f} seconds ends."
         )
 
-    def _stopped(self, done: asyncio.Task, transport: McpTransport) -> None:
-        """Ends transport of bot that stopped. Reports bot that raised."""
-        transport.close()
+    def _stopped(self, handle: str, done: asyncio.Task) -> None:
+        """Drops handle of bot that stopped, which frees its slot. Reports bot that raised."""
+        self._drop(handle)
         if not done.cancelled() and done.exception():
             logger.error(f"MCP transport: the bot of one session raised {done.exception()!r}")
 
@@ -182,10 +180,8 @@ class McpBotServer:
         session.task.cancel()
 
     def _over(self, session: Session) -> bool:
-        """Gives whether one session ended, or no call returned inside its lifetime."""
-        if session.lock.locked():
-            return False
-        return session.transport.ended or monotonic() - session.used > self._handle_seconds
+        """Gives whether no call holds one session and none returned inside its lifetime."""
+        return not session.lock.locked() and monotonic() - session.used > self._handle_seconds
 
     async def _sweep(self) -> None:
         """Drops each handle no call returns to, for as long as this server serves."""
@@ -205,25 +201,10 @@ class McpBotServer:
             self._drop(handle)
         await asyncio.gather(*tasks, return_exceptions=True)
 
-    def _security(self) -> TransportSecuritySettings | None:
-        """Gives header check of this bind. Bind with no origins takes stock check."""
-        if self._origins:
-            return TransportSecuritySettings(
-                enable_dns_rebinding_protection=True,
-                allowed_hosts=[f"{self._host}:{self._port}"],
-                allowed_origins=self._origins,
-            )
-        if self._host not in LOCAL_HOSTS:
-            logger.warning(
-                f"MCP transport: the bind {self._host} is not local, and the stock host check "
-                f"and origin check cover a local bind only. Pass origins, or serve behind a proxy"
-            )
-        return None
-
     def _host_app(self) -> Starlette:
         """Builds host app around streamable HTTP app of MCP server."""
         served = self._mcp.streamable_http_app(
-            streamable_http_path=self._path, host=self._host, transport_security=self._security()
+            streamable_http_path=self._path, transport_security=self._security
         )
 
         @asynccontextmanager
@@ -260,3 +241,12 @@ def _progress(context: Context) -> Notify:
             logger.debug(f"MCP transport: one progress notification failed, {error!r}")
 
     return notify
+
+
+def _loopback() -> TransportSecuritySettings:
+    """Gives loopback setting of MCP SDK: 3 loopback hosts on any port, their http origins."""
+    hosts = ("127.0.0.1", "localhost", "[::1]")
+    return TransportSecuritySettings(
+        allowed_hosts=[f"{host}:*" for host in hosts],
+        allowed_origins=[f"http://{host}:*" for host in hosts],
+    )

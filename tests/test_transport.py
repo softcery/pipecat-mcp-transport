@@ -16,10 +16,6 @@ SENTENCES = "We open at nine. We close at five."
 WORD_DELAY = 0.05
 
 
-async def quiet(count: int, text: str) -> None:
-    """Takes one reply piece and keeps none."""
-
-
 async def test_one_chat_call_gives_the_whole_reply_of_the_bot():
     async with running(Echo()) as transport:
         reply = await turn(transport, LINE)
@@ -128,7 +124,7 @@ async def test_a_call_on_a_transport_whose_worker_ended_raises():
 
 async def turn(transport: McpTransport, line: str) -> str:
     """Runs one turn. Turn that hangs fails this test."""
-    return await asyncio.wait_for(transport.chat(line, quiet), timeout=TURN_SECONDS)
+    return await asyncio.wait_for(transport.chat(line), timeout=TURN_SECONDS)
 
 
 def first_user_line(messages) -> str:
