@@ -182,7 +182,8 @@ The first run of a shape waits for its pipeline to start, which the max of the 1
 - `make test` runs the tests. `make test-lowest` runs them on the lowest allowed pipecat-ai,
   mcp, starlette and uvicorn. CI runs both.
 - `make audit` checks `uv.lock` for known vulnerabilities.
-- A `v` tag publishes the package to PyPI.
+- `make build` builds the wheel and the sdist into `dist/`. CI runs it on each push to `main`.
+- A `v` tag that matches the project version publishes the package to PyPI.
 
 ## License
 
