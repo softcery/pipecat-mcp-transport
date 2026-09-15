@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1, 2026-09-15
+
+- The README opens on the capability, a bot as an MCP server for any MCP client. It takes the pipecat header, a complete snippet, the run command of the example and one line per paragraph. No source change.
+
 ## 0.1.0, 2026-09-15
 
 - `McpTransport` on `BaseTransport`, with `McpInputTransport` and `McpOutputTransport` on the

@@ -1,6 +1,6 @@
 [project]
 name = "pipecat-mcp-transport"
-version = "0.1.0"
+version = "0.1.1"
 description = "An MCP transport for pipecat. One MCP client holds one text conversation with one bot."
 readme = "README.md"
 license = "BSD-2-Clause"
