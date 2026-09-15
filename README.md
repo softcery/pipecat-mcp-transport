@@ -9,7 +9,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/pipecat-mcp-transport?cacheSeconds=3600)](https://pypi.org/project/pipecat-mcp-transport) [![Python versions](https://img.shields.io/pypi/pyversions/pipecat-mcp-transport?cacheSeconds=3600)](https://pypi.org/project/pipecat-mcp-transport) [![Check workflow](https://img.shields.io/github/actions/workflow/status/softcery/pipecat-mcp-transport/check.yml?branch=main&label=check)](https://github.com/softcery/pipecat-mcp-transport/actions/workflows/check.yml) [![License BSD 2-Clause](https://img.shields.io/github/license/softcery/pipecat-mcp-transport)](https://github.com/softcery/pipecat-mcp-transport/blob/main/LICENSE)
 
-An MCP transport for [pipecat](https://github.com/pipecat-ai/pipecat). One MCP client, for example Claude Code, holds one text conversation with one pipecat bot. The server exposes 2 tools, `start` and `chat`, over streamable HTTP.
+An MCP transport for [pipecat](https://github.com/pipecat-ai/pipecat). It serves your pipecat bot as an MCP server, so any agent with an MCP client, for example Claude Code, talks to the bot. The bot keeps its pipeline, its tools and its history. The server exposes 2 tools, `start` and `chat`, over streamable HTTP.
 
 Tested with pipecat 1.10.0 and mcp 2.2.0 on Python 3.12, 3.13 and 3.14.
 
