@@ -1,10 +1,15 @@
 # pipecat-mcp-transport
 
+[![PyPI version](https://img.shields.io/pypi/v/pipecat-mcp-transport?cacheSeconds=3600)](https://pypi.org/project/pipecat-mcp-transport)
+[![Python versions](https://img.shields.io/pypi/pyversions/pipecat-mcp-transport?cacheSeconds=3600)](https://pypi.org/project/pipecat-mcp-transport)
+[![Check workflow](https://img.shields.io/github/actions/workflow/status/softcery/pipecat-mcp-transport/check.yml?branch=main&label=check)](https://github.com/softcery/pipecat-mcp-transport/actions/workflows/check.yml)
+[![License BSD 2-Clause](https://img.shields.io/github/license/softcery/pipecat-mcp-transport)](LICENSE)
+
 An MCP transport for [pipecat](https://github.com/pipecat-ai/pipecat). One MCP client, for
 example Claude Code, holds one text conversation with one pipecat bot. The server gives 2 tools,
-`start` and `chat`, over streamable HTTP. The package ships a `py.typed` marker.
+`start` and `chat`, over streamable HTTP.
 
-Tested with pipecat-ai 1.10.0 and mcp 2.2.0 on Python 3.14.
+Tested with pipecat-ai 1.10.0 and mcp 2.2.0 on Python 3.12, 3.13 and 3.14.
 
 ## Install
 
@@ -122,7 +127,7 @@ so 0.21 seconds of each row is model pace.
 
 The first run of a shape waits for its pipeline to start, which the max of the 1 turn row holds.
 
-`bench.py --url <openai url> --out rows.jsonl --sha <commit>` writes one row.
+`python examples/bench.py --url <openai url> --out rows.jsonl --sha <commit>` writes one row.
 
 ## Limits
 
@@ -141,6 +146,15 @@ The first run of a shape waits for its pipeline to start, which the max of the 1
 - The client tool of a bot has no caller on MCP, and pipecat marks no function call as one.
   Register no client tool.
 
+## Develop
+
+- The package ships a `py.typed` marker.
+- `make lint` checks the lock, the format, the lint rules, and the types with pyright.
+- `make test` runs the tests. `make test-lowest` runs them on the lowest allowed pipecat-ai,
+  mcp, starlette and uvicorn. CI runs both.
+- `make audit` checks `uv.lock` for known vulnerabilities.
+- A `v` tag publishes the package to PyPI.
+
 ## License
 
-BSD 2-Clause.
+BSD 2-Clause. [Softcery](https://softcery.com) builds and maintains the package.

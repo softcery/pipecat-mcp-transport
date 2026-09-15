@@ -27,7 +27,7 @@ from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat_mcp_transport.turn import Notify, Turn
 
 
-class SessionEnded(Exception):
+class SessionEndedError(Exception):
     """Worker of this transport ended."""
 
 
@@ -47,7 +47,7 @@ class McpTransport(BaseTransport):
         """Runs one turn and gives its reply. Empty line reads turn in flight."""
         await self._ready.wait()
         if self._ended:
-            raise SessionEnded
+            raise SessionEndedError
         if line:
             await self._start_turn(line, notify)
         turn = self._turn
@@ -62,7 +62,7 @@ class McpTransport(BaseTransport):
         if turn is self._turn:
             self._turn = None
         if self._ended and not turn.text:
-            raise SessionEnded
+            raise SessionEndedError
         return turn.text
 
     def input(self) -> McpInputTransport:

@@ -19,7 +19,7 @@ from pipecat.transports.base_transport import TransportParams
 from starlette.applications import Starlette
 from starlette.routing import Mount
 
-from pipecat_mcp_transport.transport import McpRunnerArguments, McpTransport, SessionEnded
+from pipecat_mcp_transport.transport import McpRunnerArguments, McpTransport, SessionEndedError
 from pipecat_mcp_transport.turn import Notify
 
 Bot = Callable[[McpRunnerArguments], Coroutine[Any, Any, None]]
@@ -134,7 +134,7 @@ class McpBotServer:
             session.used = monotonic()
             try:
                 reply = await session.transport.chat(line, _progress(context))
-            except SessionEnded:
+            except SessionEndedError:
                 self._drop(handle)
                 raise ToolError(self._gone(handle)) from None
             session.used = monotonic()
@@ -195,7 +195,7 @@ class McpBotServer:
                 for handle in [h for h, s in self._sessions.items() if self._over(s)]:
                     logger.debug("MCP transport: the sweep drops one session")
                     self._drop(handle)
-            except Exception as error:
+            except Exception as error:  # noqa: BLE001
                 logger.error(f"MCP transport: one sweep round raised {error!r}")
 
     async def _shut(self) -> None:
@@ -256,7 +256,7 @@ def _progress(context: Context) -> Notify:
     async def notify(count: int, text: str) -> None:
         try:
             await context.report_progress(count, message=text)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             logger.debug(f"MCP transport: one progress notification failed, {error!r}")
 
     return notify

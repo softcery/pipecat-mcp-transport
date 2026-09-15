@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0
+## 0.1.0, 2026-09-15
 
 - `McpTransport` on `BaseTransport`, with `McpInputTransport` and `McpOutputTransport` on the
   stock input and output bases. One transport is one session, and each chat call waits for the
@@ -22,4 +22,5 @@
   takes one branch and no idle frame set.
 - One progress notification per reply piece. A client cancel ends the handler and keeps the
   session.
-- A `py.typed` marker, one single-file example and a dev group with the tests.
+- A `py.typed` marker, a single-file bot and a latency bench under `examples/`, and a dev group
+  with the tests.

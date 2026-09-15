@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Latency bench of the MCP transport. Seconds from one chat call to its reply.
 It reads one OpenAI-shaped server, so a row holds model seconds and transport seconds."""
 
@@ -58,7 +57,6 @@ def main() -> int:
     }
     with parsed.out.open("a", encoding=ENCODING) as rows:
         rows.write(json.dumps(row) + "\n")
-    print(json.dumps(row))
     return 0
 
 

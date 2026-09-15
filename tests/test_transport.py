@@ -8,7 +8,7 @@ from pipecat.processors.aggregators.llm_text_processor import LLMTextProcessor
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 from scripted import REPLY, TURN_SECONDS, Echo, Mute, running
 
-from pipecat_mcp_transport import McpTransport, SessionEnded
+from pipecat_mcp_transport import McpTransport, SessionEndedError
 
 LINE = "when do you open"
 SECOND = "and on sunday"
@@ -122,7 +122,7 @@ async def test_a_call_on_a_transport_whose_worker_ended_raises():
     async with running(Echo()) as transport:
         await turn(transport, LINE)
 
-    with pytest.raises(SessionEnded):
+    with pytest.raises(SessionEndedError):
         await turn(transport, SECOND)
 
 

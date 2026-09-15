@@ -6,7 +6,7 @@ from pipecat_mcp_transport.transport import (
     McpOutputTransport,
     McpRunnerArguments,
     McpTransport,
-    SessionEnded,
+    SessionEndedError,
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     "McpOutputTransport",
     "McpRunnerArguments",
     "McpTransport",
-    "SessionEnded",
+    "SessionEndedError",
 ]

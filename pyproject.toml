@@ -9,9 +9,15 @@ requires-python = ">=3.12"
 authors = [{ name = "Softcery" }]
 keywords = ["pipecat", "mcp", "transport", "voice"]
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Communications :: Chat",
+    "Typing :: Typed",
 ]
 dependencies = [
     "pipecat-ai>=1.10,<2",
@@ -27,32 +33,40 @@ Issues = "https://github.com/softcery/pipecat-mcp-transport/issues"
 [dependency-groups]
 dev = [
     "httpx>=0.28",
+    "pyright[nodejs]>=1.1.414",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
-    "ruff>=0.15.22",
-    "ty>=0.0.80",
+    "ruff>=0.16.7",
 ]
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
+[tool.uv]
+required-version = ">=0.12.13,<0.13"
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
-src = ["src"]
+src = ["src", "examples"]
 
 [tool.ruff.lint]
 select = [
     "E", "W", "F", "I", "UP", "B",
     "SIM", "C4", "RUF", "PTH", "RET", "ASYNC", "T20", "ERA",
+    "S", "BLE", "A", "N", "PIE", "PERF", "FURB", "NPY", "PT", "PGH", "PLE", "PLW", "TRY",
 ]
+ignore = ["TRY003"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pipecat_mcp_transport"]
 
 [tool.ruff.lint.per-file-ignores]
-"bench.py" = ["T20"]
+"tests/**" = ["S101"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+
+[tool.pytest]
+asyncio_mode = "auto"
+strict = true
+testpaths = ["tests"]
 
 [build-system]
 requires = ["uv_build>=0.12.13,<0.13"]
