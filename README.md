@@ -3,7 +3,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/pipecat-mcp-transport?cacheSeconds=3600)](https://pypi.org/project/pipecat-mcp-transport)
 [![Python versions](https://img.shields.io/pypi/pyversions/pipecat-mcp-transport?cacheSeconds=3600)](https://pypi.org/project/pipecat-mcp-transport)
 [![Check workflow](https://img.shields.io/github/actions/workflow/status/softcery/pipecat-mcp-transport/check.yml?branch=main&label=check)](https://github.com/softcery/pipecat-mcp-transport/actions/workflows/check.yml)
-[![License BSD 2-Clause](https://img.shields.io/github/license/softcery/pipecat-mcp-transport)](LICENSE)
+[![License BSD 2-Clause](https://img.shields.io/github/license/softcery/pipecat-mcp-transport)](https://github.com/softcery/pipecat-mcp-transport/blob/main/LICENSE)
 
 An MCP transport for [pipecat](https://github.com/pipecat-ai/pipecat). One MCP client, for
 example Claude Code, holds one text conversation with one pipecat bot. The server gives 2 tools,

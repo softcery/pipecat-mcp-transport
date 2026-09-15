@@ -26,11 +26,10 @@ PROMPT = "You are a helpful assistant. Answer in one short sentence."
 
 async def bot(runner_args: RunnerArguments) -> None:
     """Runs one session. One chat call is one turn."""
-    transport = await transport_of(runner_args)
+    transport, turn = await transport_of(runner_args)
     key = os.environ["OPENAI_API_KEY"]
     url = os.environ.get("OPENAI_BASE_URL")
     context = LLMContext([{"role": "system", "content": PROMPT}])
-    turn = LLMUserAggregatorParams(vad_analyzer=SileroVADAnalyzer())
     aggregators = LLMContextAggregatorPair(context, user_params=turn)
     pipeline = Pipeline(
         [
@@ -49,11 +48,14 @@ async def bot(runner_args: RunnerArguments) -> None:
     await runner.run()
 
 
-async def transport_of(runner_args: RunnerArguments) -> BaseTransport:
-    """Gives the transport of one session. The MCP server builds its own."""
+async def transport_of(
+    runner_args: RunnerArguments,
+) -> tuple[BaseTransport, LLMUserAggregatorParams]:
+    """Gives the transport of one session and its turn params. Only audio needs the VAD."""
     if isinstance(runner_args, McpRunnerArguments):
-        return runner_args.transport
-    return await create_transport(runner_args, {"webrtc": voice_params})
+        return runner_args.transport, LLMUserAggregatorParams()
+    transport = await create_transport(runner_args, {"webrtc": voice_params})
+    return transport, LLMUserAggregatorParams(vad_analyzer=SileroVADAnalyzer())
 
 
 def voice_params() -> TransportParams:

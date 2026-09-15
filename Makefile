@@ -1,4 +1,4 @@
-.PHONY: lint test test-lowest audit
+.PHONY: lint test test-lowest audit build
 
 lint:
 	uv lock --check
@@ -16,3 +16,6 @@ test-lowest:
 # pipecat reaches nltk only through sent_tokenize, outside the model-path APIs of this advisory
 audit:
 	uv audit --locked --preview-features audit-command --ignore-until-fixed GHSA-8mgp-746c-j5xp
+
+build:
+	uv build
