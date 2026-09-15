@@ -1,0 +1,59 @@
+[project]
+name = "pipecat-mcp-transport"
+version = "0.1.0"
+description = "An MCP transport for pipecat. One MCP client holds one text conversation with one bot."
+readme = "README.md"
+license = "BSD-2-Clause"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [{ name = "Softcery" }]
+keywords = ["pipecat", "mcp", "transport", "voice"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Communications :: Chat",
+]
+dependencies = [
+    "pipecat-ai>=1.10,<2",
+    "mcp>=2,<3",
+    "starlette>=0.40",
+    "uvicorn>=0.30",
+]
+
+[project.urls]
+Source = "https://github.com/softcery/pipecat-mcp-transport"
+Issues = "https://github.com/softcery/pipecat-mcp-transport/issues"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.15.22",
+    "ty>=0.0.80",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "UP", "B",
+    "SIM", "C4", "RUF", "PTH", "RET", "ASYNC", "T20", "ERA",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pipecat_mcp_transport"]
+
+[tool.ruff.lint.per-file-ignores]
+"bench.py" = ["T20"]
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13"]
+build-backend = "uv_build"
