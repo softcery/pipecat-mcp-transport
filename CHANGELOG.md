@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- The package takes `pipecat-ai>=1.14`, the first pipecat that allows Pillow 13. Pillow 13.0.0
+  fixes 41 advisories, 3 of them critical. No source change.
+
 ## 0.1.1, 2026-09-15
 
 - The README opens on the capability, a bot as an MCP server for any MCP client. It takes the pipecat header, a complete snippet, the run command of the example and one line per paragraph. No source change.
