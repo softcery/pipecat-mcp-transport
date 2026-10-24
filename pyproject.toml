@@ -20,7 +20,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "pipecat-ai>=1.10,<2",
+    "pipecat-ai>=1.14,<2",
     "mcp>=2,<3",
     "starlette>=0.40",
     "uvicorn>=0.30",
@@ -40,7 +40,7 @@ dev = [
 ]
 
 [tool.uv]
-required-version = ">=0.12.13,<0.13"
+required-version = ">=0.13.5,<0.14"
 
 [tool.ruff]
 line-length = 100
@@ -69,5 +69,5 @@ strict = true
 testpaths = ["tests"]
 
 [build-system]
-requires = ["uv_build>=0.12.13,<0.13"]
+requires = ["uv_build>=0.13.5,<0.14"]
 build-backend = "uv_build"
