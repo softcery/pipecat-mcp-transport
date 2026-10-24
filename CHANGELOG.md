@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.2, 2026-10-24
 
 - The package takes `pipecat-ai>=1.14`, the first pipecat that allows Pillow 13. Pillow 13.0.0
   fixes 41 advisories, 3 of them critical. No source change.
